@@ -1,0 +1,54 @@
+name: E-WITNESS Foundation CI & Quality Gates
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  quality-and-tests:
+    name: Lint, Typecheck, Architecture & Tests (Python 3.12+)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install pinned dependencies
+        run: |
+          python -m pip install -r requirements-dev.txt
+
+      - name: Verify dependency consistency
+        run: |
+          python -m pip check
+
+      - name: Check formatting (Ruff)
+        run: |
+          python -m ruff format --check .
+
+      - name: Run linter & Bandit security rules (Ruff)
+        run: |
+          python -m ruff check .
+
+      - name: Run strict static type checking (Mypy)
+        run: |
+          python -m mypy
+
+      - name: Run automated unit & integration tests with coverage
+        run: |
+          python -m pytest
+
+      - name: Run dependency vulnerability audit
+        run: |
+          python -m pip_audit -r requirements.txt
+          python -m pip_audit -r requirements-dev.txt

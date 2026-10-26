@@ -1,0 +1,656 @@
+<USER_REQUEST>
+# E-WITNESS — MASTER IMPLEMENTATION PROMPT
+## BATCH 04 — GROUP 01: PHASES 31–35
+### User Profiles, Staff Accounts, Department Management, Membership & Student Lifecycle
+
+You are the principal software architect, senior FastAPI backend engineer, database architect, application security engineer, and QA lead for the E-WITNESS platform.
+
+Your mission is to implement **Batch 04, Group 01 — Phases 31–35 only**, in the existing repository.
+
+## 1. PROJECT CONFIGURATION
+
+Repository:
+
+`C:\Users\lenovo\Desktop\E-WITNESS`
+
+Existing stack, subject to repository verification:
+
+- Python 3.13
+- FastAPI
+- Pydantic v2
+- SQLAlchemy 2 async
+- Alembic
+- PostgreSQL
+- Uvicorn
+- PyJWT
+- Argon2id
+- pytest
+- Ruff
+- mypy
+
+Use the existing `.venv` environment and established application architecture.
+
+## 2. NON-NEGOTIABLE RULES
+
+1. Read the master 120-phase roadmap before modifying code.
+2. Inspect previous implementation reports, especially:
+   - `artifacts/BATCH_01_GROUP_01_REPORT.md`
+   - `artifacts/BATCH_01_GROUP_02_REPORT.md`
+   - `artifacts/BATCH_02_GROUP_01_REPORT.md`
+   - `artifacts/BATCH_02_GROUP_02_REPORT.md`
+   - `artifacts/BATCH_03_GROUP_01_REPORT.md`
+   - `artifacts/BATCH_03_GROUP_02_REPORT.md`
+3. Inspect the actual repository, current database models, Alembic migration history, authentication, authorization, services, schemas, routers, configuration, and tests.
+4. Establish a full-test baseline before implementation.
+5. Implement only Phases 31, 32, 33, 34, and 35.
+6. Do not implement Phases 36–40.
+7. Do not implement any frontend.
+8. Do not replace existing models or create duplicate user, role, department, session, or authentication systems.
+9. Preserve the established FastAPI layered architecture, async database patterns, and service-layer boundaries.
+10. Preserve the existing security protections, including password hashing, JWT validation, session management, rate limiting, request validation, and standardized error handling.
+11. Enforce authorization on the server. Never rely on frontend restrictions.
+12. Never allow an ordinary user to grant themselves administrative privileges.
+13. Do not silently change API contracts or database schemas without justification.
+14. Do not fabricate test results, coverage numbers, successful database operations, or security checks.
+15. Keep the roadmap unchanged and do not implement unrelated features.
+16. Make targeted, maintainable changes and document any unresolved risks.
+
+If a capability already exists, inspect it and extend it only where necessary. Do not duplicate working functionality to satisfy a checklist.
+
+---
+
+# 3. EXECUTION WORKFLOW
+
+Follow this order.
+
+### Step 1 — Repository inspection
+
+Inspect:
+
+- The master roadmap and previous reports
+- Existing User, Department, Role, Session and authentication models
+- Current role-permission matrix
+- Authentication and authorization dependencies
+- `UserService` and `DepartmentService`, or their actual equivalents
+- Existing API routers and Pydantic schemas
+- Existing Alembic migration chain
+- Email/notification infrastructure, if already implemented
+- Rate-limit and request-validation controls
+- Existing tests and test fixtures
+- Database constraints and indexes
+
+Identify what is already implemented and what is missing for Phases 31–35.
+
+### Step 2 — Establish baseline
+
+Run the existing test suite and quality checks before making changes.
+
+Use the actual project commands. For example, if applicable:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m ruff format --check .
+.\.venv\Scripts\python.exe -m mypy .
+.\.venv\Scripts\python.exe -m pip check
+```
+
+Record the real baseline. Investigate pre-existing failures instead of attributing them automatically to this batch.
+
+### Step 3 — Implement
+
+Complete each phase in sequence, adding targeted tests alongside the implementation.
+
+### Step 4 — Verify
+
+Run targeted tests after each phase, followed by the complete regression suite and all applicable quality gates.
+
+### Step 5 — Report
+
+Create:
+
+`artifacts/BATCH_04_GROUP_01_REPORT.md`
+
+Do not overwrite previous reports.
+
+---
+
+# 4. PHASE 31 — USER PROFILE APIs, ACCOUNT STATUS, PROFILE UPDATES & IDENTITY VALIDATION
+
+## Objective
+
+Implement secure, consistent user profile and identity-management APIs using the existing user and authentication infrastructure.
+
+## Requirements
+
+### A. Profile retrieval
+
+1. Implement or verify an authenticated endpoint for retrieving the current user's profile.
+2. Reuse the existing `/api/v1/auth/me` endpoint if it already provides the required behavior. Do not create a duplicate endpoint without a documented reason.
+3. Implement an authorized administrative user-detail endpoint if required by the established API conventions.
+4. Return only fields that the caller is authorized to view.
+5. Never expose password hashes, raw tokens, reset credentials, internal security metadata, or secret values.
+
+### B. Profile updates
+
+1. Support updating explicitly permitted profile fields.
+2. Use dedicated Pydantic request schemas with strict field allowlists.
+3. Apply updates through the existing service layer.
+4. Validate names, email addresses and other supported identity fields according to the established domain requirements.
+5. Prevent mass assignment.
+6. Do not allow ordinary profile updates to modify:
+   - User role
+   - Department ownership
+   - Account activation status
+   - Verification status
+   - Password hash
+   - Session state
+   - Internal security flags
+7. Preserve the previously implemented rule that self-profile updates are restricted to permitted fields, including `full_name`, unless the existing documented contract explicitly allows additional fields.
+8. Require a separate authorized workflow for sensitive identity changes.
+
+### C. Account status
+
+1. Define or reuse the existing account-status model.
+2. Support authorized retrieval of relevant status information.
+3. Prevent disabled, suspended, or otherwise ineligible accounts from using protected operations according to the existing authentication policy.
+4. Ensure status transitions cannot be performed by unauthorized users.
+5. Ensure session and token behavior after account deactivation remains secure.
+6. Do not invent a new account-status enumeration if an equivalent model already exists.
+
+### D. Identity validation
+
+1. Validate identity-related data on both API and service boundaries as appropriate.
+2. Enforce normalized email uniqueness using the project's established email policy.
+3. Handle duplicate identities safely and consistently.
+4. Avoid leaking unnecessary personal information through errors.
+5. Do not automatically change a verified email address without an appropriate verification workflow.
+6. Do not introduce external identity-provider integrations unless they already exist in the roadmap and infrastructure.
+
+### Required tests
+
+- Retrieve own profile
+- Retrieve another user's profile with and without permission
+- Update permitted profile fields
+- Reject role and department mass-assignment attempts
+- Reject unauthorized account-status changes
+- Duplicate and malformed email addresses
+- Inactive-account behavior
+- Sensitive-field redaction
+- Existing authentication regression tests
+
+---
+
+# 5. PHASE 32 — STAFF ACCOUNT CREATION, INVITATION, ACTIVATION, DEACTIVATION & ADMINISTRATIVE CONTROLS
+
+## Objective
+
+Implement the secure lifecycle of staff accounts while respecting the established role-permission and department boundaries.
+
+## Requirements
+
+### A. Staff account creation
+
+1. Implement authorized staff-account creation using existing models and service patterns.
+2. Identify the permitted staff roles from the existing role matrix. Do not invent additional roles.
+3. Validate required identity fields and department assignment.
+4. Enforce uniqueness using application validation and database constraints where appropriate.
+5. Ensure a department administrator cannot create a Super Admin or grant privileges outside their authorization.
+6. Validate that the target department exists and is eligible to receive the account.
+7. Prevent assigning an account to an unrelated department without the required privilege.
+8. Do not return password hashes, secret tokens, or internal authentication fields.
+
+### B. Invitations
+
+1. Inspect existing email and notification infrastructure before implementation.
+2. If invitation support already exists, extend the current workflow rather than creating another one.
+3. Where a secure invitation workflow is missing, implement a suitable single-use, expiring invitation mechanism consistent with the established token infrastructure.
+4. Store only a cryptographic digest of opaque invitation tokens where compatible with the existing token model.
+5. Do not store raw invitation tokens in the database or logs.
+6. Bind each invitation to its intended identity, allowed role, department, expiry, and lifecycle state.
+7. Consume invitation tokens atomically so concurrent requests cannot activate the same invitation more than once.
+8. Avoid account enumeration through invitation-related responses.
+9. Do not claim email delivery succeeded if no real delivery provider is configured.
+10. If email delivery is unavailable, provide an explicitly documented development/test workflow without exposing production secrets.
+
+### C. Activation and deactivation
+
+1. Implement authorized activation and deactivation operations where not already present.
+2. Define safe and consistent lifecycle transitions.
+3. Prevent unauthorized reactivation of deactivated accounts.
+4. Ensure deactivation revokes or invalidates sessions according to the existing security model.
+5. Check relevant token and session behavior after account-status changes.
+6. Ensure a deactivated account cannot continue accessing protected resources merely because it possesses a previously issued token.
+7. Do not permit an administrator to elevate their own role or circumvent privilege boundaries through account-management APIs.
+8. Handle attempts to deactivate protected administrative accounts according to explicit policy.
+9. Use transactional operations where multiple related state changes must succeed or fail together.
+
+### D. Auditability
+
+Reuse the existing logging or audit infrastructure where available. Record appropriate account lifecycle events without logging passwords, raw tokens, or unnecessary personal information.
+
+Do not introduce a duplicate audit system.
+
+### Required tests
+
+- Authorized and unauthorized staff creation
+- Department-scoped creation
+- Role-escalation attempts
+- Duplicate staff identities
+- Invitation expiration
+- Invitation replay
+- Concurrent invitation consumption
+- Invalid or wrong-identity invitation use
+- Activation and deactivation
+- Session invalidation after deactivation
+- Account lifecycle audit behavior
+
+---
+
+# 6. PHASE 33 — DEPARTMENT CREATION, UPDATES, ACTIVATION & METADATA MANAGEMENT
+
+## Objective
+
+Provide secure management of departments using the existing Department model and authorization policies.
+
+## Requirements
+
+### A. Department creation
+
+1. Inspect the current Department model and existing `DepartmentService`.
+2. Implement or complete authorized department creation.
+3. Reuse existing identifiers, naming conventions and database constraints.
+4. Validate required department metadata.
+5. Prevent duplicate department records according to the established uniqueness policy.
+6. Do not introduce unrelated institutional or organizational hierarchy models.
+
+### B. Department updates
+
+1. Support updates to explicitly permitted metadata fields.
+2. Validate all incoming fields through Pydantic schemas and service-level checks.
+3. Protect immutable identifiers and internal ownership fields.
+4. Prevent department metadata updates from modifying membership, user roles, or administrative privileges indirectly.
+5. Enforce the existing rule that department-scoped administrators can operate only within their authorized scope.
+
+### C. Activation and deactivation
+
+1. Support department activation/deactivation if the existing domain model permits these transitions.
+2. Define and test how department state affects account assignment and access.
+3. Prevent new membership assignments to inactive departments unless a documented business rule permits them.
+4. Do not silently delete users or historical records when a department is deactivated.
+5. Avoid destructive cascading operations on department deactivation.
+6. Preserve records and references required for auditability.
+
+### D. Department detail and listing
+
+1. Implement or verify authorized department detail and list operations.
+2. Return only permitted metadata.
+3. Ensure department-scoped administrators cannot enumerate unauthorized departments.
+4. Reuse the established pagination, filtering and sorting utilities where available.
+5. Do not implement a separate search architecture for this phase.
+
+### Required tests
+
+- Department creation and duplicate detection
+- Valid and invalid metadata
+- Authorized updates
+- Unauthorized updates
+- Activation and deactivation
+- Inactive-department assignment restrictions
+- Cross-department access attempts
+- Historical-record preservation
+- Response-schema validation
+
+---
+
+# 7. PHASE 34 — DEPARTMENT MEMBERSHIP, STAFF ASSIGNMENTS & SCOPED ADMINISTRATIVE PERMISSIONS
+
+## Objective
+
+Make organizational membership explicit and enforce department-level boundaries across membership and staff-assignment operations.
+
+## Requirements
+
+### A. Organizational context
+
+1. Inspect whether the existing model uses a direct `department_id` on users or a membership association table.
+2. Preserve the established model if it correctly represents the current requirements.
+3. Do not add a membership table merely for stylistic reasons.
+4. If multiple-department membership is explicitly required by the existing roadmap or domain model, implement it with appropriate constraints and migration planning.
+5. Otherwise, retain the established single-department relationship.
+6. Enforce required department relationships through service validation and database constraints where appropriate.
+
+### B. Membership operations
+
+1. Implement or complete authorized membership assignment and removal.
+2. Validate both the user and department before assigning membership.
+3. Reject invalid or inactive targets according to the established account lifecycle policy.
+4. Prevent duplicate membership records if an association table exists.
+5. Use transactions for related membership and assignment changes.
+6. Prevent ordinary users from assigning themselves to privileged departments.
+7. Prevent department administrators from modifying membership in other departments.
+8. Protect privileged roles from unauthorized assignment or removal.
+9. Avoid orphaned references and inconsistent department state.
+
+### C. Staff assignments
+
+1. Implement only the staff-assignment operations supported by the existing domain and roadmap.
+2. Reuse the current role-permission matrix.
+3. Check both the acting administrator's authority and the target resource's department.
+4. Enforce authorization inside the service layer even if router dependencies already check permissions.
+5. Avoid trusting a department ID supplied by the client without validating ownership.
+6. Return consistent, safe errors for unauthorized or invalid operations.
+7. Ensure concurrent assignment changes cannot violate uniqueness or lifecycle constraints.
+
+### D. Authorization integrity
+
+Verify the established roles, including:
+
+- `STUDENT`
+- `STAFF`
+- `INVESTIGATOR`
+- `DEPT_ADMIN`
+- `SUPER_ADMIN`
+
+Use the actual canonical role enumeration in the repository if it differs.
+
+Enforce these principles:
+
+- Deny by default.
+- Grant only explicitly authorized actions.
+- A department administrator cannot cross department boundaries.
+- A staff member cannot grant themselves additional permissions.
+- A student cannot perform staff or administrative operations.
+- Super Admin access remains governed by explicit permissions and auditability.
+- Client-supplied IDs never establish authorization by themselves.
+
+### Required tests
+
+- Valid membership assignment and removal
+- Duplicate membership
+- Invalid department and user references
+- Inactive account or department restrictions
+- Department-admin boundary enforcement
+- Self-assignment and privilege escalation
+- Super Admin authorized operations
+- Concurrent assignment behavior
+- Cross-department service-layer regression tests
+
+---
+
+# 8. PHASE 35 — STUDENT REGISTRATION, VERIFICATION & ACCOUNT LIFECYCLE MANAGEMENT
+
+## Objective
+
+Provide a secure student-registration workflow integrated with the existing identity, department, token, and authentication infrastructure.
+
+## Requirements
+
+### A. Registration
+
+1. Inspect the current User model and authentication routes before implementation.
+2. Determine whether student registration already exists and extend it rather than duplicating it.
+3. Implement or complete a dedicated student-registration endpoint if required.
+4. Validate identity fields, normalized email addresses, and required department or enrollment context.
+5. Prevent students from selecting privileged roles.
+6. Prevent client-supplied fields from setting verification status, account status, role, internal permissions, or protected department assignments.
+7. Apply database-level uniqueness constraints where appropriate.
+8. Use transactions to avoid partially created student records.
+9. Return safe responses for duplicate identities without exposing unnecessary information.
+
+### B. Verification
+
+1. Reuse the existing email-verification token infrastructure.
+2. Do not create a second verification-token system.
+3. Use single-use, expiring verification tokens.
+4. Store token digests rather than raw tokens where compatible with the existing design.
+5. Consume tokens atomically.
+6. Ensure tokens are bound to the correct user and intended verification purpose.
+7. Prevent replay and cross-user token use.
+8. Avoid logging verification secrets.
+9. Do not claim email delivery works unless the configured provider actually sends the message.
+10. Keep test-only verification shortcuts unavailable in production.
+
+### C. Student lifecycle
+
+1. Define or reuse student account states and permitted transitions.
+2. Ensure unverified or inactive accounts receive only the access allowed by existing policy.
+3. Enforce current account state and required session revocation checks on protected operations.
+4. Support authorized deactivation or reactivation only where the existing role matrix permits it.
+5. Do not let students change their own role, verification status, department assignment, or account state.
+6. Preserve account history and relationships.
+7. Ensure registration and verification do not bypass the authentication rate limiter.
+
+### D. Enrollment and department context
+
+1. Validate department eligibility before student assignment.
+2. Use the existing department model and current single-department or membership relationship.
+3. Reject enrollment into inactive or unauthorized departments.
+4. Do not invent course, batch, classroom, or academic-management subsystems outside the current roadmap.
+5. Ensure a student's department context is validated server-side for every relevant operation.
+
+### Required tests
+
+- Successful student registration
+- Invalid registration data
+- Duplicate email and identity handling
+- Student privilege-escalation attempts
+- Verification success and expiration
+- Verification replay and cross-user misuse
+- Inactive or unverified account behavior
+- Department assignment validation
+- Rate-limit integration
+- Existing login, refresh, logout, and session-revocation regression tests
+
+---
+
+# 9. DATABASE AND MIGRATION REQUIREMENTS
+
+1. Inspect the existing Alembic history before creating migrations.
+2. Add a migration only when a genuine schema change is required.
+3. Preserve existing migration identifiers and dependency ordering.
+4. Do not modify an already-applied migration to introduce a new schema change.
+5. Use explicit foreign keys and appropriate uniqueness constraints.
+6. Add indexes only where justified by actual query patterns and constraints.
+7. Avoid destructive migrations.
+8. Ensure migration downgrade behavior is considered and documented.
+9. Verify the complete migration chain against the available PostgreSQL environment.
+10. Do not claim PostgreSQL integration verification if the database was not actually available.
+11. Ensure async SQLAlchemy sessions and transaction handling follow existing project conventions.
+12. Test rollback behavior when a multi-step lifecycle operation fails.
+
+---
+
+# 10. API CONTRACT AND ERROR-HANDLING REQUIREMENTS
+
+1. Follow the established `/api/v1/` conventions.
+2. Reuse centralized error envelopes and request validation from Batch 03.
+3. Use correct HTTP status codes and stable response schemas.
+4. Preserve existing request and response compatibility where possible.
+5. Use `201 Created` for successful resource creation where appropriate.
+6. Use `204 No Content` only where the existing contract supports an empty response.
+7. Distinguish validation, authentication, authorization, missing-resource, duplicate-resource, and conflict cases according to the established error contract.
+8. Do not expose stack traces, database details, passwords, token contents, or internal security metadata.
+9. Include request correlation IDs according to the existing middleware.
+10. Keep authorization checks consistent across list, detail, create, update, activation, deactivation, and assignment endpoints.
+
+Do not implement Phase 39's complete OpenAPI contract-generation work early. Maintain accurate FastAPI schemas and document only the API details needed to test the current five phases.
+
+---
+
+# 11. TESTING AND QUALITY GATES
+
+Create focused tests in the existing test structure. Reuse existing fixtures and test utilities.
+
+At minimum, cover:
+
+- Profile API behavior
+- Staff lifecycle
+- Department lifecycle
+- Department membership and assignments
+- Student registration and verification
+- Permission and role boundaries
+- Cross-department isolation
+- Duplicate identities and records
+- Account deactivation and session behavior
+- Token expiry, replay and invalid token handling
+- Database integrity and transaction rollback
+- API status codes and response contracts
+- Regression tests for all previously implemented authentication and security features
+
+Use real PostgreSQL integration tests where the existing test environment supports them. Clearly identify mocked tests, integration tests, skipped tests and infrastructure-blocked tests.
+
+After implementation, run the full suite and applicable quality gates:
+
+- pytest
+- Coverage and branch coverage, if configured
+- Ruff lint
+- Ruff format check
+- mypy
+- `pip check`
+- Dependency audit if supported by the current environment
+- Architecture boundary checks
+- Git secret and sensitive-file checks
+- Alembic migration consistency
+- Repository structure verification
+
+Aim to preserve the existing coverage target of at least 90% without weakening tests or coverage configuration.
+
+Do not suppress failures or modify unrelated code just to make the batch appear GREEN.
+
+---
+
+# 12. FINAL REPORT
+
+Create:
+
+`artifacts/BATCH_04_GROUP_01_REPORT.md`
+
+Include the following sections.
+
+## A. Executive summary
+
+- Scope implemented
+- Overall status: GREEN / YELLOW / RED
+- Important findings and unresolved risks
+
+## B. Phase-by-phase results
+
+For Phases 31–35, document:
+
+- Exact phase title
+- Status and supporting evidence
+- APIs and behavior implemented
+- Files created or modified
+- Tests added and results
+- Database changes, if any
+- Remaining issues
+
+## C. API inventory
+
+List the endpoints implemented or changed, including:
+
+- HTTP method
+- Route
+- Purpose
+- Required permissions
+- Department-scoping behavior
+- Request and response schema references
+
+Clearly distinguish new endpoints from existing endpoints that were reused.
+
+## D. Security verification
+
+Report results for:
+
+- Role escalation attempts
+- Cross-department access
+- Staff creation permissions
+- Invitation security
+- Student verification
+- Account deactivation and session invalidation
+- Duplicate identity handling
+- Sensitive-field exposure
+- Database integrity and token replay
+
+## E. Quality gates
+
+Report actual results for:
+
+- Baseline tests
+- Final tests
+- Coverage and branch coverage
+- Ruff
+- mypy
+- Dependency checks
+- Architecture checks
+- Git security checks
+- Migration checks
+
+Separate passed, failed, skipped and blocked tests.
+
+## F. Database and deployment notes
+
+Document actual schema changes, migration commands, relevant configuration, email-provider dependencies, and any environmental limitations. Never include real secrets.
+
+## G. Roadmap integrity
+
+Explicitly confirm:
+
+- Only Phases 31–35 were implemented.
+- Phases 36–40 were not started.
+- No frontend was implemented.
+- Existing architecture and previous security controls were preserved except for documented necessary corrections.
+
+## H. Changed-file inventory
+
+List all created, modified, and deleted files. Explain each deletion.
+
+---
+
+# 13. FINAL RESPONSE FORMAT
+
+When the work is complete, respond using:
+
+**E-WITNESS — Batch 04, Group 01**
+
+**Overall status:** 🟢 GREEN / 🟡 YELLOW / 🔴 RED
+
+- Phase 31 — status and evidence
+- Phase 32 — status and evidence
+- Phase 33 — status and evidence
+- Phase 34 — status and evidence
+- Phase 35 — status and evidence
+
+**Verification**
+- Baseline tests
+- Final tests
+- Coverage
+- Ruff
+- mypy
+- Database and migration checks
+- Security regression tests
+
+**Important findings**
+- Actual security or correctness issues and their status.
+
+**Report**
+- `artifacts/BATCH_04_GROUP_01_REPORT.md`
+
+**Next permitted work**
+- State that the next group is Batch 04, Group 02 — Phases 36–40, subject to review.
+- Do not start Group 02 automatically.
+
+---
+
+# START IMPLEMENTATION NOW
+
+Inspect the roadmap and repository, establish the baseline, and implement Phases 31–35 only.
+
+Prioritize correct identity lifecycle behavior, strict server-side department isolation, transactional integrity, backward compatibility, and evidence-based testing.
+
+Do not stop after generating a plan. Implement the permitted phases, run the actual verification commands, create the report, and clearly identify any work that remains incomplete.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-13T21:57:32+05:30.
+</ADDITIONAL_METADATA>

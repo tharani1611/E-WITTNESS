@@ -1,0 +1,82 @@
+<USER_REQUEST>
+# E-WITNESS — BATCH 04, GROUP 02 MASTER IMPLEMENTATION PROMPT
+## Phases 36–40 | Investigator Assignment, Super Admin Controls, API Contracts & Security Validation
+
+You are working on **E-WITNESS**, a secure, department-scoped digital witness and investigation platform.
+
+**Repository:** `C:\Users\lenovo\Desktop\E-WITNESS`
+
+Your task is to implement **Batch 04, Group 02 — Phases 36–40 only**, continuing from the completed Batch 04 Group 01 implementation.
+
+This is a continuation of an existing project, NOT a new project.
+
+---
+
+## 1. NON-NEGOTIABLE RULES
+
+1. Read and follow the existing master roadmap and all previous batch/group reports before making changes.
+2. Preserve the original 120-phase roadmap exactly.
+3. Implement only Phases 36, 37, 38, 39, and 40.
+4. Do not replace the roadmap with another feature plan.
+5. Do not implement frontend screens in this group.
+6. Do not implement future-phase features prematurely.
+7. Do not introduce unrelated features, duplicate models, duplicate services, or unnecessary dependencies.
+8. Reuse the existing FastAPI architecture, SQLAlchemy models, authorization policies, migrations, error envelopes, pagination conventions, logging, and testing infrastructure.
+9. Enforce authorization on the server for every protected operation. Never trust role, department, investigator, or user identifiers supplied by a client without validating them.
+10. Never weaken existing security controls to make tests pass.
+11. Do not delete tests, lower coverage thresholds, skip failing tests, or fabricate verification results.
+12. Use real test output as evidence. If a gate cannot run because of an environmental limitation, mark it **YELLOW** and explain why.
+13. Before modifying any file, inspect the current implementation and determine whether the functionality already exists.
+14. Preserve existing behavior unless a documented defect requires a minimal, tested correction.
+
+## 2. REQUIRED INITIAL INSPECTION
+
+Before implementation:
+
+- Read the 
+<truncated 13238 bytes>
+ or altered.
+17. Recommended next action.
+
+Use these status indicators consistently:
+
+- 🟢 GREEN — implementation and required verification passed with recorded evidence.
+- 🟡 YELLOW — partially complete, blocked, or insufficiently verified.
+- 🔴 RED — failed, insecure, broken, or not implemented.
+
+Do not mark the group GREEN merely because the code was written. The status must reflect implementation, test evidence, security behavior, and migration validation.
+
+---
+
+## 6. FINAL SCOPE LOCK
+
+The only authorized scope is:
+
+- **Phase 36:** Investigator assignment, department responsibilities, and case-access prerequisites.
+- **Phase 37:** Super Admin user and department management APIs with explicit privilege boundaries.
+- **Phase 38:** Search, pagination, filters, sorting, and safe list/detail responses.
+- **Phase 39:** Frontend-facing OpenAPI contracts, including request and response examples.
+- **Phase 40:** Tests for user lifecycle, duplicate records, cross-department access, and permission boundaries.
+
+**Do not replace this scope with “Evidence Custody, Integrity Models & Digital Signatures.”** That is not the Phase 36–40 scope in the master roadmap provided for this project.
+
+Do not start Phase 41 or any subsequent phase.
+
+## EXECUTION ORDER
+
+1. Inspect the roadmap, repository, and previous reports.
+2. Run and record baseline checks.
+3. Implement Phases 36–38.
+4. Implement and validate Phase 39.
+5. Complete Phase 40 regression tests.
+6. Run all applicable quality gates.
+7. Fix verified defects without weakening existing security.
+8. Re-run affected tests and all required final checks.
+9. Write `artifacts/BATCH_04_GROUP_02_REPORT.md`.
+10. Present a concise final summary with phase-by-phase status, test evidence, remaining risks, and the report path.
+
+Begin with repository inspection and the baseline. Preserve the roadmap. Do not skip ahead.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-14T02:06:11+05:30.
+</ADDITIONAL_METADATA>

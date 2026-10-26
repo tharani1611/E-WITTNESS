@@ -1,0 +1,128 @@
+# =============================================================================
+# E-WITNESS — Git Ignore Rules
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Python Virtual Environments
+# -----------------------------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+.python-version
+pyvenv.cfg
+
+# -----------------------------------------------------------------------------
+# 2. Python Caches, Bytecode, and Compiled Artifacts
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+.Python
+
+# -----------------------------------------------------------------------------
+# 3. Test, Coverage, Linter, and Type-Checker Outputs
+# -----------------------------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+.nox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pyright/
+
+# -----------------------------------------------------------------------------
+# 4. Local Environment Configuration Files
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------------------------------------------------------
+# 5. Credentials, Private Keys, Certificates, and Secret Files
+# -----------------------------------------------------------------------------
+secrets/
+.secrets/
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.csr
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.secret
+*.secrets
+*credentials*.json
+*service-account*.json
+*service_account*.json
+id_rsa*
+id_ed25519*
+*.asc
+*.gpg
+
+# -----------------------------------------------------------------------------
+# 6. IDE and Operating-System Artifacts
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+# 7. Packaging, Build Outputs, Logs, and Temporary Files
+# -----------------------------------------------------------------------------
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.bak
+*.sqlite3
+*.db
+
+# -----------------------------------------------------------------------------
+# 8. Local Evidence / Quarantine Scratch Data (Never commit evidence files)
+# -----------------------------------------------------------------------------
+local_storage/
+quarantine/
+evidence_uploads/

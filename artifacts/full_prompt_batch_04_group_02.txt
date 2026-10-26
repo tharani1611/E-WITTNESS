@@ -1,0 +1,378 @@
+<USER_REQUEST>
+# E-WITNESS — BATCH 04, GROUP 02 MASTER IMPLEMENTATION PROMPT
+## Phases 36–40 | Investigator Assignment, Super Admin Controls, API Contracts & Security Validation
+
+You are working on **E-WITNESS**, a secure, department-scoped digital witness and investigation platform.
+
+**Repository:** `C:\Users\lenovo\Desktop\E-WITNESS`
+
+Your task is to implement **Batch 04, Group 02 — Phases 36–40 only**, continuing from the completed Batch 04 Group 01 implementation.
+
+This is a continuation of an existing project, NOT a new project.
+
+---
+
+## 1. NON-NEGOTIABLE RULES
+
+1. Read and follow the existing master roadmap and all previous batch/group reports before making changes.
+2. Preserve the original 120-phase roadmap exactly.
+3. Implement only Phases 36, 37, 38, 39, and 40.
+4. Do not replace the roadmap with another feature plan.
+5. Do not implement frontend screens in this group.
+6. Do not implement future-phase features prematurely.
+7. Do not introduce unrelated features, duplicate models, duplicate services, or unnecessary dependencies.
+8. Reuse the existing FastAPI architecture, SQLAlchemy models, authorization policies, migrations, error envelopes, pagination conventions, logging, and testing infrastructure.
+9. Enforce authorization on the server for every protected operation. Never trust role, department, investigator, or user identifiers supplied by a client without validating them.
+10. Never weaken existing security controls to make tests pass.
+11. Do not delete tests, lower coverage thresholds, skip failing tests, or fabricate verification results.
+12. Use real test output as evidence. If a gate cannot run because of an environmental limitation, mark it **YELLOW** and explain why.
+13. Before modifying any file, inspect the current implementation and determine whether the functionality already exists.
+14. Preserve existing behavior unless a documented defect requires a minimal, tested correction.
+
+## 2. REQUIRED INITIAL INSPECTION
+
+Before implementation:
+
+- Read the master roadmap and previous batch reports.
+- Read `artifacts/BATCH_03_GROUP_01_REPORT.md`.
+- Read `artifacts/BATCH_03_GROUP_02_REPORT.md`.
+- Read `artifacts/BATCH_04_GROUP_01_REPORT.md`.
+- Inspect existing user, department, role, session, authorization, authentication-token, and invitation implementations.
+- Inspect all existing API routes, schemas, services, repositories, migrations, and tests relevant to Phases 36–40.
+- Inspect existing OpenAPI configuration and API conventions.
+- Run the existing test suite and record the baseline result.
+- Identify any incomplete requirements, regressions, or security risks inherited from Group 01.
+
+Do not assume that a feature is absent merely because its implementation is in a differently named file.
+
+If the baseline exposes a failure, document it before proceeding. Do not silently attribute pre-existing failures to this group.
+
+---
+
+# PHASE 36 — INVESTIGATOR ASSIGNMENT AND DEPARTMENT RESPONSIBILITIES
+
+Implement the investigator-assignment foundations required by the roadmap.
+
+### Requirements
+
+1. Inspect the existing `INVESTIGATOR` role and department membership model before designing anything new.
+2. Implement or complete investigator assignment and reassignment APIs using the existing architecture.
+3. Validate that the target user:
+   - Exists.
+   - Has the required investigator role.
+   - Is eligible for assignment under the existing account-status rules.
+   - Belongs to the correct active department.
+4. Enforce department-scoped access:
+   - Department administrators may operate only within their authorized department and only within their permitted administrative scope.
+   - Super Admin operations must use explicit, documented global privileges.
+   - Users must not assign investigators across departments unless an explicitly authorized operation permits it.
+5. Validate assignment changes on the server and reject invalid or unauthorized transitions.
+6. Ensure inactive departments and ineligible users cannot receive new assignments.
+7. Record appropriate audit information using existing audit facilities, if available.
+8. Prepare the authorization and relationship prerequisites for future case-access functionality.
+
+### Scope boundary
+
+Do not implement a full case-management system, evidence custody, digital signatures, chain-of-custody workflows, or future-phase investigation features unless they already exist and must be preserved.
+
+### Tests
+
+Include positive and negative tests for:
+- Valid investigator assignment.
+- Invalid role.
+- Inactive investigator account.
+- Inactive department.
+- Cross-department assignment attempts.
+- Unauthorized assignment and reassignment.
+- Missing investigator or department.
+- Attempts to bypass server-side validation.
+
+---
+
+# PHASE 37 — SUPER ADMIN USER AND DEPARTMENT MANAGEMENT
+
+Implement or complete Super Admin management APIs with explicit privilege boundaries.
+
+### Requirements
+
+1. Review the existing user and department management APIs before adding routes.
+2. Ensure Super Admin can perform only the global operations allowed by the current authorization model.
+3. Ensure Department Admin remains restricted to its authorized department.
+4. Prevent privilege escalation through:
+   - Client-supplied role fields.
+   - Department identifier manipulation.
+   - Account-status manipulation.
+   - Unauthorized Super Admin creation or modification.
+   - Unauthorized modification of another administrator.
+5. Reuse the existing user lifecycle, department lifecycle, activation, deactivation, invitation, session revocation, and department-reassignment services.
+6. Ensure account deactivation and other security-sensitive transitions retain the existing session-revocation and validation behavior.
+7. Prevent unauthorized self-escalation and any prohibited self-modification.
+8. Return safe response schemas that exclude password hashes, token digests, secrets, and other internal authentication data.
+9. Apply consistent error responses and status codes.
+10. Document the authorization policy for each administrative operation.
+
+### Tests
+
+Test:
+- Authorized Super Admin operations.
+- Department Admin access to its own department.
+- Department Admin attempts to access another department.
+- Attempts to create or elevate unauthorized administrator accounts.
+- Unauthorized activation, deactivation, and reassignment.
+- Sensitive-field disclosure.
+- Self-escalation and prohibited privilege changes.
+
+Do not introduce a new role hierarchy that conflicts with the existing project.
+
+---
+
+# PHASE 38 — SEARCH, PAGINATION, FILTERS, SORTING, AND SAFE RESPONSES
+
+Implement or complete safe list and detail APIs for users, departments, and relevant investigator-assignment resources.
+
+### Requirements
+
+1. Reuse the project's existing pagination and API response conventions.
+2. Support relevant, authorized filters, such as:
+   - Department.
+   - Role.
+   - Account status.
+   - Investigator eligibility or assignment status, where applicable.
+3. Support bounded pagination with validated page/limit or cursor parameters consistent with existing conventions.
+4. Support sorting only by an explicit allowlist of permitted fields.
+5. Validate sort direction and reject invalid query parameters.
+6. Prevent SQL injection by using safe SQLAlchemy expressions and parameterized queries. Never interpolate raw client-supplied SQL identifiers or clauses.
+7. Apply department-scoped authorization before returning results.
+8. Prevent unauthorized users from using filters, counts, pagination, or detail endpoints to discover information belonging to other departments.
+9. Return only approved public or administrative response fields.
+10. Ensure list and detail responses never expose:
+    - Password hashes.
+    - Raw invitation or verification tokens.
+    - Token digests.
+    - Session credentials.
+    - Internal security secrets.
+11. Keep pagination metadata accurate and consistent.
+12. Ensure missing resources, invalid filters, and unauthorized access follow the established error contract.
+
+### Tests
+
+Cover:
+- Pagination defaults and limits.
+- Empty result sets.
+- Valid and invalid filters.
+- Valid and invalid sort fields.
+- Sorting direction validation.
+- Cross-department list and detail access.
+- Attempts to inject SQL through search, filters, and sorting.
+- Response-schema leakage.
+- Stable and predictable pagination behavior.
+
+---
+
+# PHASE 39 — FRONTEND-FACING OPENAPI CONTRACTS
+
+Prepare reliable API contracts for the future frontend without implementing frontend code.
+
+### Requirements
+
+1. Inspect the existing FastAPI OpenAPI configuration and all affected route definitions.
+2. Ensure each relevant endpoint documents:
+   - HTTP method and path.
+   - Authentication requirements.
+   - Required roles and department-scope rules.
+   - Request schemas.
+   - Response schemas.
+   - Required and optional fields.
+   - Validation constraints.
+   - Success status codes.
+   - Error responses.
+   - Pagination, filtering, and sorting parameters.
+3. Provide realistic request and response examples for the relevant user, department, and investigator-assignment operations.
+4. Ensure invitation and verification examples never contain actual credentials or usable tokens.
+5. Ensure response schemas exclude sensitive internal model fields.
+6. Verify that generated OpenAPI output reflects the real implementation rather than hypothetical future behavior.
+7. Resolve inconsistent schema names, duplicate operation IDs, missing response definitions, or inaccurate examples where necessary.
+8. Preserve the existing `/api/v1` versioning and error-envelope conventions.
+9. If the repository maintains API documentation or contract artifacts, update them in the existing location.
+10. Do not invent endpoints or promise behavior that has not been implemented and tested.
+
+### Contract validation
+
+- Generate the OpenAPI schema from the running application or the project's supported test mechanism.
+- Validate that the schema can be serialized successfully.
+- Check operation IDs for uniqueness.
+- Verify representative request and response schemas.
+- Verify that the documentation accurately describes authorization requirements and error responses.
+- Confirm that the OpenAPI document does not expose secrets.
+
+---
+
+# PHASE 40 — USER LIFECYCLE, DUPLICATE RECORD, AND AUTHORIZATION REGRESSION TESTS
+
+Create a comprehensive regression suite for the entire Batch 04 scope.
+
+### Required coverage
+
+**User lifecycle**
+- Registration and verification.
+- Staff invitation and invitation acceptance.
+- Profile updates.
+- Activation and deactivation.
+- Department reassignment.
+- Session revocation after applicable security-sensitive transitions.
+
+**Department lifecycle**
+- Creation and updates, using existing APIs.
+- Activation and deactivation.
+- Restrictions involving inactive departments.
+- Department membership and investigator assignment consistency.
+
+**Duplicate and concurrency cases**
+- Duplicate email addresses.
+- Duplicate or conflicting account records.
+- Reuse of consumed, expired, or invalid invitation and verification tokens.
+- Concurrent operations that could create conflicting assignments or account states.
+- Integrity-constraint violations and appropriate error mapping.
+
+**Authorization**
+- Anonymous requests.
+- Student or ordinary-user privilege escalation attempts.
+- Department Admin operations within the permitted department.
+- Cross-department access attempts.
+- Super Admin-only operations.
+- Unauthorized investigator assignment.
+- Attempts to modify protected account fields.
+
+**API contracts**
+- Request validation.
+- Response validation.
+- Error-envelope consistency.
+- Pagination and sorting.
+- Sensitive-field redaction.
+- OpenAPI schema generation and accuracy.
+
+### Testing rules
+
+1. Use the existing test fixtures and database conventions.
+2. Use PostgreSQL-backed tests for database-specific behavior and migration validation wherever the project's test infrastructure supports them.
+3. Include negative security tests, not just successful requests.
+4. Verify database state after rejected or failed operations.
+5. Do not use broad exception assertions that allow unrelated failures to pass.
+6. Do not weaken coverage requirements.
+7. Do not skip a test merely because it exposes a defect in the implementation.
+8. If an external service is required, use the repository's established test double or mock and explicitly identify what was not integration-tested.
+9. Check for regressions in all prior authentication, authorization, and tenant-isolation tests.
+
+---
+
+## 3. DATABASE AND MIGRATION SAFETY
+
+Before creating a migration, determine whether the current schema already supports the required functionality.
+
+If schema changes are genuinely required:
+
+- Use the project's existing Alembic conventions.
+- Create a migration with a clear purpose and correct dependencies.
+- Preserve existing records.
+- Include appropriate constraints and indexes where justified.
+- Check upgrade and downgrade behavior.
+- Test migration from the current project head.
+- Do not modify an already-applied migration merely to make a test pass.
+- Do not create duplicate tables or columns that already exist.
+
+If no migration is needed, state that explicitly in the final report.
+
+---
+
+## 4. REQUIRED QUALITY GATES
+
+Run the repository's actual commands for every applicable gate:
+
+1. Full pytest suite.
+2. Coverage report and existing coverage threshold.
+3. Mypy.
+4. Ruff lint.
+5. Ruff format check.
+6. Architecture and dependency checks.
+7. Dependency integrity check, such as `pip check`.
+8. Secret scanning or the project's existing secret-leak check.
+9. PostgreSQL migration upgrade and downgrade validation.
+10. OpenAPI generation and contract validation.
+11. Existing foundation verification script, if available.
+
+Do not invent command names. Inspect `pyproject.toml`, scripts, and project documentation to identify the supported commands.
+
+Record the real command, exit code, and result for each gate.
+
+If a command cannot run, report the exact reason and mark that gate YELLOW. Do not report an unexecuted check as passed.
+
+---
+
+## 5. REQUIRED REPORT
+
+Create:
+
+`artifacts/BATCH_04_GROUP_02_REPORT.md`
+
+The report must contain:
+
+1. Executive summary.
+2. Exact phase mapping for Phases 36–40.
+3. Files created and modified.
+4. Routes and API contracts added or changed.
+5. Investigator-assignment rules and authorization boundaries.
+6. Super Admin and Department Admin privilege boundaries.
+7. Search, filtering, sorting, and pagination behavior.
+8. OpenAPI validation results.
+9. Database migrations and upgrade/downgrade results.
+10. Tests added and existing tests affected.
+11. Actual test totals and coverage.
+12. Actual results for every quality gate.
+13. Security findings, limitations, and unresolved risks.
+14. Any environmental blockers.
+15. Confirmation that frontend implementation was not started.
+16. Confirmation that Phases 41–120 were not implemented or altered.
+17. Recommended next action.
+
+Use these status indicators consistently:
+
+- 🟢 GREEN — implementation and required verification passed with recorded evidence.
+- 🟡 YELLOW — partially complete, blocked, or insufficiently verified.
+- 🔴 RED — failed, insecure, broken, or not implemented.
+
+Do not mark the group GREEN merely because the code was written. The status must reflect implementation, test evidence, security behavior, and migration validation.
+
+---
+
+## 6. FINAL SCOPE LOCK
+
+The only authorized scope is:
+
+- **Phase 36:** Investigator assignment, department responsibilities, and case-access prerequisites.
+- **Phase 37:** Super Admin user and department management APIs with explicit privilege boundaries.
+- **Phase 38:** Search, pagination, filters, sorting, and safe list/detail responses.
+- **Phase 39:** Frontend-facing OpenAPI contracts, including request and response examples.
+- **Phase 40:** Tests for user lifecycle, duplicate records, cross-department access, and permission boundaries.
+
+**Do not replace this scope with “Evidence Custody, Integrity Models & Digital Signatures.”** That is not the Phase 36–40 scope in the master roadmap provided for this project.
+
+Do not start Phase 41 or any subsequent phase.
+
+## EXECUTION ORDER
+
+1. Inspect the roadmap, repository, and previous reports.
+2. Run and record baseline checks.
+3. Implement Phases 36–38.
+4. Implement and validate Phase 39.
+5. Complete Phase 40 regression tests.
+6. Run all applicable quality gates.
+7. Fix verified defects without weakening existing security.
+8. Re-run affected tests and all required final checks.
+9. Write `artifacts/BATCH_04_GROUP_02_REPORT.md`.
+10. Present a concise final summary with phase-by-phase status, test evidence, remaining risks, and the report path.
+
+Begin with repository inspection and the baseline. Preserve the roadmap. Do not skip ahead.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-14T02:06:11+05:30.
+</ADDITIONAL_METADATA>

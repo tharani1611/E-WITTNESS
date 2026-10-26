@@ -1,0 +1,15 @@
+# =============================================================================
+# E-WITNESS — Pinned Development, Testing, Linting & Security Dependencies
+# Includes all runtime dependencies from requirements.txt
+# =============================================================================
+-r requirements.txt
+
+aiosqlite==0.22.1
+coverage==7.16.2
+httpx==0.28.1
+mypy==2.4.0
+pip-audit==2.10.1
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+ruff==0.17.0
